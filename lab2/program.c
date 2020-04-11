@@ -10,13 +10,14 @@
 #define UZMIBITOVE(broj,prvi,bitova) 	( ( (broj) >> (64-(prvi)) ) & MASKA(bitova) )
 #define N                               10
 #define KRAJ_RADA                       -1
-#define A                               3
-#define B                               3
+#define A                               3 //broj radnih dretvi
+#define B                               3 //broj neradnih dretvi
 uint64_t MS[N], ulaz = 0, izlaz = 0, BROJAC = 0, velicina_grupe,  
         *BROJ, *ULAZ, kraj;
 
 
-void stavi_u_MS(uint64_t x){
+void stavi_u_MS(uint64_t x)
+{
     MS[ulaz] = x;
     ulaz = (ulaz + 1) % N;
     BROJAC++;
@@ -25,8 +26,8 @@ void stavi_u_MS(uint64_t x){
         izlaz = (izlaz + 1) % N;
     }
 }
-uint64_t uzmi_iz_MS(){
-    
+uint64_t uzmi_iz_MS()
+{    
     uint64_t x = MS[izlaz];
     if (BROJAC > 0){
         izlaz = (izlaz + 1) % N;
@@ -40,7 +41,8 @@ uint64_t uzmi_iz_MS(){
 
 //funkcije iz LAB1
 
-uint64_t count1(uint64_t x){ //broji broj pojavljivanja jedinice
+uint64_t count1(uint64_t x) //broji broj pojavljivanja jedinice
+{ 
     uint64_t i, sum = 0;
     for (i = 0; i < 4; i++){
         if (x & 1) 
@@ -50,8 +52,8 @@ uint64_t count1(uint64_t x){ //broji broj pojavljivanja jedinice
     return sum;
 }  
 
-uint64_t zbrckanost(uint64_t x){
-
+uint64_t zbrckanost(uint64_t x)
+{
     uint64_t i, b1 = 0, pn, gn;
 
     for (i = 0; i < 64 - 8; i++){
@@ -81,8 +83,8 @@ uint64_t generiraj_dobar_broj(uint64_t num, struct gmp_pomocno *p)
 	return najbolji_broj;
 }
 
-uint64_t procjeni_velicinu_grupe(){
-
+uint64_t procjeni_velicinu_grupe()
+{
     uint64_t M = 1000, SEK = 10, k = 0, velicina = 1, i, broj;
 
     struct gmp_pomocno p;
@@ -108,11 +110,11 @@ uint64_t procjeni_velicinu_grupe(){
 
 
 
-//nove fje
+//nove funkcije
 
 
-void udi_u_KO(uint64_t i){
-
+void udi_u_KO(uint64_t i)
+{
     uint64_t j, max = 0;
     ULAZ[i] = 1;
     for (j = 0; j < A; j++)
@@ -129,13 +131,13 @@ void udi_u_KO(uint64_t i){
     }
 }
 
-void izadi_iz_KO(uint64_t i) {
-
+void izadi_iz_KO(uint64_t i) 
+{
     BROJ[i] = 0;
 }
 
-void *radna_dretva(void *id) {
-
+void *radna_dretva(void *id) 
+{
     struct gmp_pomocno p;
     uint64_t *pom = id;
 	inicijaliziraj_generator (&p, *pom);
@@ -152,10 +154,11 @@ void *radna_dretva(void *id) {
     }
 
     obrisi_generator (&p);
+    return NULL;
 }
 
-void *neradna_dretva(void *id) {
-
+void *neradna_dretva(void *id) 
+{
     uint64_t *pom = id;
     while(kraj != KRAJ_RADA) {
         sleep(3);
@@ -166,8 +169,11 @@ void *neradna_dretva(void *id) {
         printf("uzeo %lx\n", y);
 
         izadi_iz_KO(*pom);
-    }    
+    }
+
+    return NULL;    
 }
+
 
 //main -------------------------------------------------------
 
