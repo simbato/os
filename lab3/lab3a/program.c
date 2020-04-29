@@ -114,7 +114,7 @@ uint64_t procjeni_velicinu_grupe()
 
 //nove funkcije
 
-
+/*
 void udi_u_KO(uint64_t i)
 {
     uint64_t j, max = 0;
@@ -137,7 +137,7 @@ void izadi_iz_KO(uint64_t i)
 {
     BROJ[i] = 0;
 }
-
+*/
 void *radna_dretva(void *id) 
 {
     struct gmp_pomocno p;

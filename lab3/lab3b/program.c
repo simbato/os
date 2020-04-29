@@ -12,9 +12,11 @@
 #define KRAJ_RADA                       -1
 #define A                               3 //broj radnih dretvi
 #define B                               3 //broj neradnih dretvi
-uint64_t MS[N], ulaz = 0, izlaz = 0, BROJAC = 0, velicina_grupe,  
+uint64_t MS[N], ulaz = 0, izlaz = 0, BROJAC = 0, velicina_grupe, br_praznih, br_punih,  
         *BROJ, *ULAZ, kraj;
 
+pthread_mutex_t m;     //monitor
+pthread_cond_t red[2];
 
 void stavi_u_MS(uint64_t x)
 {
@@ -112,30 +114,6 @@ uint64_t procjeni_velicinu_grupe()
 
 //nove funkcije
 
-
-void udi_u_KO(uint64_t i)
-{
-    uint64_t j, max = 0;
-    ULAZ[i] = 1;
-    for (j = 0; j < A; j++)
-        if (BROJ[j] > max)
-            max = BROJ[j];
-    BROJ[i] = max;
-    ULAZ[i] = 0;
-
-    for (j = 0; j < A; j++){
-        while(ULAZ[j] == 1);
-
-        while(BROJ[j] != 0 && 
-            (BROJ[j] < BROJ[i] || (BROJ[j] == BROJ[i] && j < i)));
-    }
-}
-
-void izadi_iz_KO(uint64_t i) 
-{
-    BROJ[i] = 0;
-}
-
 void *radna_dretva(void *id) 
 {
     struct gmp_pomocno p;
@@ -145,12 +123,17 @@ void *radna_dretva(void *id)
     while (kraj != KRAJ_RADA) {
         uint64_t x = generiraj_dobar_broj(velicina_grupe, &p);
         
-        udi_u_KO(*pom);
+        pthread_mutex_lock(&m);
+        while(br_praznih == 0){
+            pthread_cond_wait(&red[1], &m);
+        }
 
         stavi_u_MS(x);
         printf("stavio %lx\n", x);
 
-        izadi_iz_KO(*pom);
+        br_punih++;
+        pthread_cond_signal(&red[0]);
+        pthread_mutex_unlock(&m);
     }
 
     obrisi_generator (&p);
@@ -159,16 +142,20 @@ void *radna_dretva(void *id)
 
 void *neradna_dretva(void *id) 
 {
-    uint64_t *pom = id;
     while(kraj != KRAJ_RADA) {
         sleep(3);
 
-        udi_u_KO(*pom);
+        pthread_mutex_lock(&m);
+        while(br_punih == 0){
+            pthread_cond_wait(&red[0], &m);
+        }
 
         uint64_t y = uzmi_iz_MS();
         printf("uzeo %lx\n", y);
 
-        izadi_iz_KO(*pom);
+        br_praznih++;
+        pthread_cond_signal(&red[1]);
+        pthread_mutex_unlock(&m);
     }
 
     return NULL;    
@@ -182,6 +169,14 @@ int main(int argc, char *argv[])
 	uint64_t i;
 
     uint64_t *mem;
+
+    pthread_mutex_init (&m, NULL);
+	pthread_cond_init (&red[0], NULL);
+	pthread_cond_init (&red[1], NULL);
+
+    br_punih = 0;
+    br_praznih = N;
+
     //A radnih, B neradnih dretvi
     mem = malloc(sizeof(int64_t) * 2 * (A+B) + (A+B) * sizeof(pthread_t) );
     ULAZ = mem;
@@ -218,6 +213,9 @@ int main(int argc, char *argv[])
         pthread_join( t[i], NULL );
     }    
 
+    pthread_mutex_destroy (&m);
+	pthread_cond_destroy (&red[0]);
+	pthread_cond_destroy (&red[1]);
     free(mem);
 
 	return 0;
