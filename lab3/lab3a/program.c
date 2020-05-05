@@ -114,30 +114,6 @@ uint64_t procjeni_velicinu_grupe()
 
 //nove funkcije
 
-/*
-void udi_u_KO(uint64_t i)
-{
-    uint64_t j, max = 0;
-    ULAZ[i] = 1;
-    for (j = 0; j < A; j++)
-        if (BROJ[j] > max)
-            max = BROJ[j];
-    BROJ[i] = max;
-    ULAZ[i] = 0;
-
-    for (j = 0; j < A; j++){
-        while(ULAZ[j] == 1);
-
-        while(BROJ[j] != 0 && 
-            (BROJ[j] < BROJ[i] || (BROJ[j] == BROJ[i] && j < i)));
-    }
-}
-
-void izadi_iz_KO(uint64_t i) 
-{
-    BROJ[i] = 0;
-}
-*/
 void *radna_dretva(void *id) 
 {
     struct gmp_pomocno p;
@@ -148,6 +124,7 @@ void *radna_dretva(void *id)
         uint64_t x = generiraj_dobar_broj(velicina_grupe, &p);
         
         sem_wait(&prazni);
+        //if (kraj == KRAJ_RADA) break;
         sem_wait(&KO);
 
         stavi_u_MS(x);
@@ -168,6 +145,7 @@ void *neradna_dretva(void *id)
         sleep(3);
 
         sem_wait(&puni);
+        //if (kraj == KRAJ_RADA) break;
         sem_wait(&KO);
 
         uint64_t y = uzmi_iz_MS();
@@ -224,6 +202,11 @@ int main(int argc, char *argv[])
 
     sleep(20);
     kraj = KRAJ_RADA;
+
+    for (i = 0; i < A; i++)
+        sem_post(&puni);
+    for (i = 0; i < B; i++)
+        sem_post(&prazni);
 
     for(i = 0; i < A+B; i++){
         pthread_join( t[i], NULL );

@@ -132,6 +132,7 @@ void *radna_dretva(void *id)
         printf("stavio %lx\n", x);
 
         br_punih++;
+        br_praznih--;
         pthread_cond_signal(&red[0]);
         pthread_mutex_unlock(&m);
     }
@@ -154,6 +155,7 @@ void *neradna_dretva(void *id)
         printf("uzeo %lx\n", y);
 
         br_praznih++;
+        br_punih--;
         pthread_cond_signal(&red[1]);
         pthread_mutex_unlock(&m);
     }
@@ -208,6 +210,10 @@ int main(int argc, char *argv[])
 
     sleep(20);
     kraj = KRAJ_RADA;
+
+    pthread_cond_broadcast(&red[1]);
+    pthread_cond_broadcast(&red[0]);
+    
 
     for(i = 0; i < A+B; i++){
         pthread_join( t[i], NULL );
